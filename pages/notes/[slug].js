@@ -4,6 +4,12 @@ import matter from 'gray-matter';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
 
+// Format date consistently between server and client
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 export default function NotePage({ content, frontmatter }) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
@@ -14,7 +20,7 @@ export default function NotePage({ content, frontmatter }) {
       </div>
       
       <h1 className="text-3xl font-bold mb-4">{frontmatter.title}</h1>
-      <p className="text-gray-500 mb-8">{new Date(frontmatter.date).toLocaleDateString()}</p>
+      <p className="text-gray-500 mb-8">{formatDate(frontmatter.date)}</p>
       
       <div className="prose max-w-none">
         <ReactMarkdown>{content}</ReactMarkdown>

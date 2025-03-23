@@ -4,6 +4,12 @@ import path from 'path';
 import Link from 'next/link';
 import matter from 'gray-matter';
 
+// Format date consistently between server and client
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 export default function Home({ notes }) {
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -33,7 +39,7 @@ export default function Home({ notes }) {
             className="block p-4 border rounded hover:bg-gray-50"
           >
             <h2 className="text-xl font-semibold">{note.title}</h2>
-            <p className="text-gray-500 text-sm mt-2">{new Date(note.date).toLocaleDateString()}</p>
+            <p className="text-gray-500 text-sm mt-2">{formatDate(note.date)}</p>
           </Link>
         ))}
       </div>

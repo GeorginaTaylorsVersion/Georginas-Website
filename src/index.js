@@ -88,13 +88,14 @@ async function pushToGitHub() {
       },
     });
     
-    // Push to GitHub
+    // Push to GitHub with force option
     await git.push({
       fs,
       http,
       dir,
       remote: 'origin',
       ref: 'main',
+      force: true,  // Add force option to resolve conflicts
       onAuth: () => ({ username: GITHUB_TOKEN }),
     });
     

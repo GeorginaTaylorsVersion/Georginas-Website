@@ -1,0 +1,11 @@
+pages/
+courses/
+  index.js 
+  math-136/
+    index.js
+  math-138/
+    index.js
+  econ-101/
+    index.js
+  comm-101/
+    index.js

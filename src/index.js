@@ -26,16 +26,45 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 }
 
 async function getNotionPages() {
+  let allPages = [];
+  let hasMore = true;
+  let startCursor = undefined;
+
+  console.log(`Fetching pages from database ID: ${DATABASE_ID}`);
+
   try {
-    const response = await notion.databases.query({
-      database_id: DATABASE_ID,
-    });
-    return response.results;
+    while (hasMore) {
+      const response = await notion.databases.query({
+        database_id: DATABASE_ID,
+        start_cursor: startCursor, // Use the cursor to get the next page
+        page_size: 100, // Request the maximum allowed page size
+      });
+
+      if (response.results && response.results.length > 0) {
+         allPages = allPages.concat(response.results);
+         console.log(`Fetched ${response.results.length} pages... Total so far: ${allPages.length}`);
+      } else {
+         console.log("No results found in this batch.");
+      }
+
+
+      hasMore = response.has_more;
+      startCursor = response.next_cursor;
+
+      // Optional: Add a small delay to avoid hitting rate limits, especially for large databases
+      // if (hasMore) {
+      //   await new Promise(resolve => setTimeout(resolve, 200)); // 200ms delay
+      // }
+    }
+    console.log(`Finished fetching. Total pages retrieved: ${allPages.length}`);
+    return allPages;
   } catch (error) {
     console.error('Error fetching Notion pages:', error);
-    return [];
+    // Return whatever was fetched before the error, or an empty array
+    return allPages.length > 0 ? allPages : [];
   }
 }
+
 
 async function convertPageToMarkdown(pageId) {
   try {

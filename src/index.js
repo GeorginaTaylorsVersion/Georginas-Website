@@ -77,15 +77,48 @@ async function convertPageToMarkdown(pageId) {
   }
 }
 
-async function saveMarkdownToFile(pageId, title, markdown) {
-  const sanitizedTitle = title.replace(/[^\w\s]/g, '').replace(/\s+/g, '-').toLowerCase();
-  const filePath = path.join(OUTPUT_DIR, `${sanitizedTitle}.md`);
+// Helper function to sanitize names for files/directories
+function sanitizeName(name) {
+  // Replace characters not suitable for file/folder names, convert spaces to hyphens, and lowercase
+  return name
+    .replace(/[<>:"\/\\|?*]+/g, '') // Remove invalid file system characters
+    .replace(/[^\w\s-]/g, '')      // Remove remaining non-word chars except spaces and hyphens
+    .replace(/\s+/g, '-')          // Replace spaces with hyphens
+    .toLowerCase();
+}
+
+async function saveMarkdownToFile(pageId, title, courseName, markdown) {
+  // Sanitize the title for the filename
+  const sanitizedTitle = sanitizeName(title);
   
-  // Add frontmatter
+  // Default directory path (root content folder)
+  let targetDirPath = OUTPUT_DIR;
+  let courseFrontmatter = 'null'; // YAML null value if no course
+
+  // If a course name is provided, create and use a subdirectory
+  if (courseName) {
+    const sanitizedCourseName = sanitizeName(courseName);
+    targetDirPath = path.join(OUTPUT_DIR, sanitizedCourseName);
+    courseFrontmatter = `"${courseName}"`; // Course name as YAML string
+
+    // Ensure the course subdirectory exists
+    if (!fs.existsSync(targetDirPath)) {
+      fs.mkdirSync(targetDirPath, { recursive: true });
+      console.log(`Created directory: ${targetDirPath}`);
+    }
+  } else {
+     console.warn(`No course name found for page "${title}" (${pageId}). Saving to root output directory.`);
+  }
+
+  // Final path for the markdown file
+  const filePath = path.join(targetDirPath, `${sanitizedTitle}.md`);
+
+  // Add frontmatter, including the course name
   const content = `---
-title: "${title}"
+title: "${title.replace(/"/g, '\\"')}" 
 date: "${new Date().toISOString()}"
 id: "${pageId}"
+course: ${courseFrontmatter} 
 ---
 
 ${markdown}`;

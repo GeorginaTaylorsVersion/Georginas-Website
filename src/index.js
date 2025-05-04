@@ -169,29 +169,44 @@ async function pushToGitHub() {
 
 async function main() {
   console.log('Starting Notion to GitHub sync...');
-  
+
   const pages = await getNotionPages();
   console.log(`Found ${pages.length} pages in the database`);
-  
+
   for (const page of pages) {
     const pageId = page.id;
+
+    // --- CORRECTED SECTION ---
+    // Extract Title (Assuming property name is 'Name')
+    // Adjust 'Name' if your title property in Notion is different
     const title = page.properties.Name?.title?.[0]?.plain_text || 'Untitled';
-    
-    console.log(`Processing "${title}" (${pageId})...`);
-    
+
+    // ** ADD THIS LINE **
+    // Extract Course Name from the 'Course' Select property
+    // Make sure the property name 'Course' matches exactly what you have in Notion
+    const courseName = page.properties.Course?.select?.name || null; // Get the selected option's name, or null if missing/empty
+
+    // ** CORRECTED LOG ** (Now includes course name)
+    console.log(`Processing "${title}" (${pageId}) - Course: ${courseName || 'N/A'}...`);
+    // --- END CORRECTED SECTION ---
+
     const markdown = await convertPageToMarkdown(pageId);
     if (markdown) {
-      await saveMarkdownToFile(pageId, title, markdown);
+      // --- CORRECTED CALL ---
+      // Pass the courseName (4 arguments total)
+      await saveMarkdownToFile(pageId, title, courseName, markdown);
+      // --- END CORRECTED CALL ---
     }
   }
-  
+
   if (GITHUB_REPO && GITHUB_TOKEN) {
     await pushToGitHub();
   } else {
     console.log('GitHub sync skipped: missing repository or token');
   }
-  
+
   console.log('Sync completed!');
 }
 
-main().catch(console.error); 
+// Keep the main().catch(console.error); line at the end
+main().catch(console.error);
